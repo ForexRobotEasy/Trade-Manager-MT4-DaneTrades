@@ -1,0 +1,172 @@
+mql5
+//+------------------------------------------------------------------+
+//|                                                     DaneTrades.mq5|
+//|                             Copyright 2021, Forex Robot Easy Team|
+//|                                       https://www.forexroboteasy.com|
+//+------------------------------------------------------------------+
+#property copyright 'Copyright 2021, Forex Robot Easy Team'
+#property link      'https://www.forexroboteasy.com'
+
+// Risk management parameters
+input ENUM_RISK_CALCULATION RiskCalculation = RISK_PERCENTAGE;
+input double RiskPercentage = 1.0;
+input double RiskFixedAmount = 100.0;
+input bool UseFixedLots = true;
+
+// Breakeven stop loss parameters
+input ENUM_BREAKEVEN_MODE BreakevenMode = BREAKEVEN_PIPS;
+input double BreakevenPips = 10.0;
+input double BreakevenPrice = 0.0;
+
+// Trailing stop loss parameters
+input double TrailingStopPips = 20.0;
+
+// Max daily loss parameters
+input ENUM_MAX_DAILY_LOSS_MODE MaxDailyLossMode = MAX_DAILY_LOSS_PERCENTAGE;
+input double MaxDailyLossPercentage = 2.0;
+input double MaxDailyLossAmount = 200.0;
+double TotalDailyProfit = 0.0;
+
+// Overtrading prevention parameters
+input double MinTimeBetweenTrades = 5; // in minutes
+datetime LastTradeTime = 0;
+
+//+------------------------------------------------------------------+
+//| Expert initialization function                                   |
+//+------------------------------------------------------------------+
+int OnInit()
+{
+    // Initialize necessary variables and settings here
+
+    return(INIT_SUCCEEDED);
+}
+
+//+------------------------------------------------------------------+
+//| Expert deinitialization function                                 |
+//+------------------------------------------------------------------+
+void OnDeinit(const int reason)
+{
+    // Perform any necessary cleanup here
+}
+
+//+------------------------------------------------------------------+
+//| Expert start function                                            |
+//+------------------------------------------------------------------+
+void OnTick()
+{
+    // Check for the conditions to open a trade here
+
+    if (CanOpenTrade())
+    {
+        // Calculate lot size based on risk management settings
+        double lotSize = UseFixedLots ? Lots : CalculateLotSize();
+
+        // Open the trade here
+
+        // Set breakeven stop loss if applicable
+        if (BreakevenMode == BREAKEVEN_PIPS)
+        {
+            SetBreakevenStopLossByPips(BreakevenPips);
+        }
+        else if (BreakevenMode == BREAKEVEN_PRICE)
+        {
+            SetBreakevenStopLossByPrice(BreakevenPrice);
+        }
+
+        // Set trailing stop loss if applicable
+        SetTrailingStopLoss(TrailingStopPips);
+
+        // Update daily profit
+        UpdateDailyProfit();
+
+        // Check for max daily loss
+        if (MaxDailyLossMode == MAX_DAILY_LOSS_PERCENTAGE && TotalDailyProfit <= -MaxDailyLossAmount)
+        {
+            // Close all open trades here
+            CloseAllTrades();
+        }
+        else if (MaxDailyLossMode == MAX_DAILY_LOSS_AMOUNT && TotalDailyProfit <= -MaxDailyLossAmount)
+        {
+            // Close all open trades here
+            CloseAllTrades();
+        }
+
+        // Update last trade time
+        LastTradeTime = TimeCurrent();
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Check if a trade can be opened                                    |
+//+------------------------------------------------------------------+
+bool CanOpenTrade()
+{
+    // Implement your trade opening conditions here
+
+    // Check for overtrading prevention
+    if (LastTradeTime != 0 && TimeCurrent() - LastTradeTime < MinTimeBetweenTrades * 60)
+    {
+        return false;
+    }
+
+    return true;
+}
+
+//+------------------------------------------------------------------+
+//| Calculate lot size based on risk management settings             |
+//+------------------------------------------------------------------+
+double CalculateLotSize()
+{
+    double lotSize = 0.0;
+
+    if (RiskCalculation == RISK_PERCENTAGE)
+    {
+        lotSize = AccountBalance() * RiskPercentage / 100 / MarketInfo(Symbol(), MODE_TICKVALUE);
+    }
+    else if (RiskCalculation == RISK_FIXED_AMOUNT)
+    {
+        lotSize = RiskFixedAmount / MarketInfo(Symbol(), MODE_TICKVALUE);
+    }
+
+    return NormalizeDouble(lotSize, MarketInfo(Symbol(), MODE_DIGITS));
+}
+
+//+------------------------------------------------------------------+
+//| Set breakeven stop loss based on pips                            |
+//+------------------------------------------------------------------+
+void SetBreakevenStopLossByPips(const double pips)
+{
+    // Set breakeven stop loss based on pips
+}
+
+//+------------------------------------------------------------------+
+//| Set breakeven stop loss based on price                           |
+//+------------------------------------------------------------------+
+void SetBreakevenStopLossByPrice(const double price)
+{
+    // Set breakeven stop loss based on price
+}
+
+//+------------------------------------------------------------------+
+//| Set trailing stop loss                                           |
+//+------------------------------------------------------------------+
+void SetTrailingStopLoss(const double pips)
+{
+    // Set trailing stop loss based on pips
+}
+
+//+------------------------------------------------------------------+
+//| Update daily profit                                              |
+//+------------------------------------------------------------------+
+void UpdateDailyProfit()
+{
+    // Update daily profit here
+}
+
+//+------------------------------------------------------------------+
+//| Close all open trades                                            |
+//+------------------------------------------------------------------+
+void CloseAllTrades()
+{
+    // Close all open trades here
+}
